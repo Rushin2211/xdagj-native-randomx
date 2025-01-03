@@ -77,7 +77,9 @@ public final class RandomXJNALoader {
             synchronized (LOCK) {
                 result = instance;
                 if (result == null) {
-                    instance = result = Native.load("randomx", RandomXJNA.class);
+                    String libFileName = getLibraryFileName("librandomx");
+                    String libFilePath = libFileName.substring(0, libFileName.lastIndexOf('.'));
+                    instance = result = Native.load(libFilePath, RandomXJNA.class);
                 }
             }
         }
@@ -94,9 +96,7 @@ public final class RandomXJNALoader {
      * @throws RuntimeException if the library loading fails
      */
     public static void loadLibrary(String libraryName) {
-        String os = System.getProperty("os.name").toLowerCase();
-        String arch = System.getProperty("os.arch").toLowerCase();
-        String libFileName = getLibraryFileName(libraryName, os, arch);
+        String libFileName = getLibraryFileName(libraryName);
 
         // Load from resources
         try (InputStream libStream = getLibraryStream(libFileName)) {
@@ -112,12 +112,12 @@ public final class RandomXJNALoader {
      * Gets the platform-specific library file name.
      *
      * @param libraryName Base name of the library
-     * @param os Operating system name
-     * @param arch System architecture
      * @return The complete library file name
      * @throws UnsupportedOperationException if the platform is not supported
      */
-    private static String getLibraryFileName(String libraryName, String os, String arch) {
+    private static String getLibraryFileName(String libraryName) {
+        String os = System.getProperty("os.name").toLowerCase();
+        String arch = System.getProperty("os.arch").toLowerCase();
         if (os.contains("win")) {
             if (StringUtils.containsAny(arch, "amd64", "x86_64")) {
                 return String.format("native/%s_windows_x86_64.dll", libraryName);
